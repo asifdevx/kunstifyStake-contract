@@ -1,0 +1,1 @@
+# kunstifyStake-contract
