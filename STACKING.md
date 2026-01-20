@@ -41,9 +41,9 @@ The contract is designed to be:
 
 ### Reward Implementation
 
-* Implemented in a child contract (example: `NEOstake.sol`)
-* Uses ERC20 tokens for rewards
-* Rewards are transferred from a treasury wallet
+* Implemented in a child contract: **`NEOstake.sol`**
+* Uses an **ERC20 token** for rewards
+* Rewards are distributed from a **treasury wallet**
 
 ---
 
@@ -66,12 +66,76 @@ Admin can define reward rules per pool:
 * `timeUnit` → Time interval (in seconds)
 * `rewardPerUnit` → Reward per NFT per time unit
 
-Example:
+**Example:**
 
 * Time unit: 1 day
 * Reward per unit: 0.4 tokens per NFT per day
 
-Reward conditions can be updated over time without affecting already earned rewards.
+Reward conditions can be updated at any time without affecting rewards already earned by users.
+
+---
+
+## Reward Token & Treasury Management (Admin)
+
+Rewards are paid using an **ERC20 token**, managed through a treasury system.
+
+### Reward Token Setup
+
+* The reward token address is set **once during deployment**
+* The contract does **not mint tokens**
+* Rewards are transferred from a treasury wallet
+
+```solidity
+constructor(address _treasury, address _rewardToken)
+```
+
+---
+
+### Treasury Wallet
+
+* Holds all reward tokens
+* Must approve the staking contract to spend tokens
+* Can be updated by the admin if needed
+
+**Update treasury wallet:**
+
+```solidity
+setTreasuryWallet(address newTreasury)
+```
+
+---
+
+### Funding Rewards
+
+Admin must fund the treasury before users can claim rewards.
+
+**Steps:**
+
+1. Admin holds ERC20 reward tokens
+2. Admin approves the staking contract
+3. Admin deposits rewards into the treasury
+
+```solidity
+depositRewards(uint256 amount)
+```
+
+**Important:**
+
+* If the treasury has insufficient balance, reward claims will fail
+* Admin is responsible for keeping the treasury funded
+
+---
+
+### Reward Distribution Flow
+
+1. User stakes NFTs
+2. Rewards accumulate over time
+3. User claims rewards
+4. Contract transfers ERC20 tokens from treasury to user
+
+```solidity
+_mintRewards(address to, uint256 amount)
+```
 
 ---
 
@@ -80,10 +144,11 @@ Reward conditions can be updated over time without affecting already earned rewa
 Only the contract owner can:
 
 * Create new staking pools
-* Update reward rates
+* Set or update reward rates
 * Change reward time units
 * Set maximum NFTs per transaction
-* Manage treasury wallet (in child contract)
+* Fund reward treasury
+* Update treasury wallet
 
 Admin **cannot**:
 
@@ -98,7 +163,7 @@ Admin **cannot**:
 Users can:
 
 * Stake ERC721 NFTs (multiple token IDs)
-* Stake ERC1155 NFTs (specific amount)
+* Stake ERC1155 NFTs (specific amounts)
 * Claim accumulated rewards
 * Withdraw staked NFTs
 * Emergency withdraw (without rewards)
@@ -120,7 +185,7 @@ Users can:
    * On reward claim
 4. Earned rewards are stored until claimed
 
-
+---
 
 ## Emergency Withdraw
 
@@ -153,3 +218,13 @@ This feature improves trust and user safety.
 
 ---
 
+## License
+
+MIT License
+
+---
+
+## Disclaimer
+
+This smart contract is provided as-is.
+A professional audit is recommended before deploying to production.
